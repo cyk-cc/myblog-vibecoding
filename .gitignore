@@ -1,0 +1,14 @@
+# Python 缓存
+__pycache__
+.pyc
+.pyo
+.pyd
+
+# 数据库文件（通常不提交，除非是种子数据）
+blog.db
+.db
+
+# 虚拟环境
+venv
+env
+ENV

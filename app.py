@@ -10,6 +10,7 @@ def create_app():
     app = Flask(__name__, template_folder='templates', static_folder='static')
     app.config['DATABASE'] = os.path.join(app.root_path, 'blog.db')
     app.config['POSTS_DIR'] = os.path.join(app.root_path, 'posts')
+    app.config['SECRET_KEY'] = 'myblog-secret-key-2026'
 
     db.init_app(app)
     register_blueprints(app)

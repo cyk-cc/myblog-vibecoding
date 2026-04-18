@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}访问统计 - 我的博客{% endblock %}
+
+{% block content %}
+<div class="stats-page">
+    <h2 class="stats-title">📊 访问统计</h2>
+
+    <!-- 总览卡片 -->
+    <div class="stats-overview">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_posts }}</div>
+            <div class="stat-label">文章总数</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_views }}</div>
+            <div class="stat-label">总阅读量</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">
+                {% if total_posts > 0 %}
+                    {{ (total_views / total_posts) | round(1) }}
+                {% else %}
+                    0
+                {% endif %}
+            </div>
+            <div class="stat-label">篇均阅读</div>
+        </div>
+    </div>
+
+    <!-- 热门文章排行 -->
+    <div class="stats-table-wrap">
+        <h3 class="stats-subtitle">🔥 热门文章排行</h3>
+        {% if top_posts %}
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th>排名</th>
+                    <th>文章标题</th>
+                    <th>发布日期</th>
+                    <th>阅读量</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in top_posts %}
+                <tr>
+                    <td class="rank-cell">
+                        {% if loop.index == 1 %}🥇
+                        {% elif loop.index == 2 %}🥈
+                        {% elif loop.index == 3 %}🥉
+                        {% else %}{{ loop.index }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('blog.post', slug=p.slug) }}">{{ p.title }}</a>
+                    </td>
+                    <td>{{ p.date | format_date }}</td>
+                    <td class="views-cell">👁 {{ p.views }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <p>还没有访问数据，快去阅读文章吧！</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -98,14 +98,22 @@ class PostService:
         metadata = MarkdownParser.parse(content)
         slug = MarkdownParser.extract_slug(filename)
         
-        # 如果没有从文件中提取到日期，使用文件名中的日期
-        if not metadata['date'] and len(filename.split('-')) >= 3:
+        # 优先从文件名提取日期（YYYY-MM-DD-slug.md 格式）
+        filename_date = None
+        if len(filename.split('-')) >= 3:
             date_str = '-'.join(filename.split('-')[:3])
             try:
                 datetime.strptime(date_str, '%Y-%m-%d')
-                metadata['date'] = date_str
+                filename_date = date_str
             except ValueError:
-                metadata['date'] = datetime.now().strftime('%Y-%m-%d')
+                pass
+        
+        if filename_date:
+            # 文件名日期优先，忽略文件内 date: 元数据
+            metadata['date'] = filename_date
+        elif not metadata['date']:
+            # 文件名无日期 且 文件内也无 date:，兜底用今天
+            metadata['date'] = datetime.now().strftime('%Y-%m-%d')
         
         # 如果没有标题，使用 slug
         if not metadata['title']:

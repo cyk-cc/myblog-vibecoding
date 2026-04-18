@@ -8,6 +8,7 @@
         <h1 class="post-title">{{ post.title }}</h1>
         <div class="post-meta">
             <time datetime="{{ post.date }}">{{ post.date | format_date }}</time>
+            <span class="views-count">👁 {{ post.views }} 阅读</span>
         </div>
     </header>
     

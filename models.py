@@ -46,7 +46,7 @@ class Post:
     
     @classmethod
     def create_table(cls, connection):
-        """创建文章表"""
+        """创建文章表，并自动迁移旧表添加 views 字段"""
         connection.execute('''
             CREATE TABLE IF NOT EXISTS posts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,14 +55,19 @@ class Post:
                 date TEXT NOT NULL,
                 summary TEXT,
                 content TEXT NOT NULL,
+                views INTEGER NOT NULL DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        # 兼容旧表：若 views 列不存在则补充添加
+        cols = [row[1] for row in connection.execute('PRAGMA table_info(posts)').fetchall()]
+        if 'views' not in cols:
+            connection.execute('ALTER TABLE posts ADD COLUMN views INTEGER NOT NULL DEFAULT 0')
         connection.commit()
     
     @classmethod
     def get_all(cls, connection):
-        """获取所有文章"""
+        """获取所有文章（按日期降序）"""
         return connection.execute(
             f'SELECT * FROM {cls.TABLE_NAME} ORDER BY date DESC'
         ).fetchall()
@@ -97,7 +102,7 @@ class Post:
     
     @classmethod
     def update(cls, connection, post_data):
-        """更新文章"""
+        """更新文章（不重置阅读量）"""
         connection.execute('''
             UPDATE posts 
             SET title = ?, date = ?, summary = ?, content = ?
@@ -117,3 +122,29 @@ class Post:
             cls.update(connection, post_data)
         else:
             cls.insert(connection, post_data)
+
+    @classmethod
+    def increment_views(cls, connection, slug):
+        """文章阅读量 +1"""
+        connection.execute(
+            f'UPDATE {cls.TABLE_NAME} SET views = views + 1 WHERE slug = ?', (slug,)
+        )
+        connection.commit()
+
+    @classmethod
+    def get_site_stats(cls, connection):
+        """获取全站统计数据"""
+        total_posts = connection.execute(
+            f'SELECT COUNT(*) as cnt FROM {cls.TABLE_NAME}'
+        ).fetchone()['cnt']
+        total_views = connection.execute(
+            f'SELECT COALESCE(SUM(views), 0) as total FROM {cls.TABLE_NAME}'
+        ).fetchone()['total']
+        top_posts = connection.execute(
+            f'SELECT slug, title, views, date FROM {cls.TABLE_NAME} ORDER BY views DESC LIMIT 10'
+        ).fetchall()
+        return {
+            'total_posts': total_posts,
+            'total_views': total_views,
+            'top_posts': top_posts,
+        }

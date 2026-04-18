@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}上传文章 - 我的博客{% endblock %}
+
+{% block content %}
+<div class="upload-page">
+    <h2 class="upload-title">上传 Markdown 文章</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="upload-card">
+        <form method="POST" enctype="multipart/form-data" class="upload-form">
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" name="file" id="fileInput" accept=".md" class="file-input">
+                <label for="fileInput" class="file-label">
+                    <span class="upload-icon">📄</span>
+                    <span class="upload-hint">点击选择 <strong>.md</strong> 文件，或将文件拖拽至此</span>
+                    <span class="file-name" id="fileName">未选择文件</span>
+                </label>
+            </div>
+
+            <div class="upload-tip">
+                <p>📌 文件上传后将自动以 <code>上传日期-原文件名.md</code> 格式重命名保存。</p>
+                <p>例如：上传 <code>my-post.md</code> → 保存为 <code>2026-04-18-my-post.md</code></p>
+            </div>
+
+            <button type="submit" class="upload-btn">上传文章</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileName');
+    const uploadZone = document.getElementById('uploadZone');
+
+    fileInput.addEventListener('change', function () {
+        fileNameDisplay.textContent = this.files[0] ? this.files[0].name : '未选择文件';
+    });
+
+    uploadZone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    });
+    uploadZone.addEventListener('dragleave', function () {
+        this.classList.remove('drag-over');
+    });
+    uploadZone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            fileNameDisplay.textContent = files[0].name;
+        }
+    });
+</script>
+{% endblock %}
